@@ -86,11 +86,17 @@ func (ports *Ports) Generate() <-chan int {
 	ch := make(chan int)
 
 	go func() {
+		defer close(ch)
 		for ports.Next() {
 			ch <- ports.Value()
 		}
-		close(ch)
 	}()
 
 	return ch
+}
+
+func (ports *Ports) Copy() Ports {
+	dataCopy := make([]portsEntry, len(ports.ports))
+	copy(dataCopy, ports.ports)
+	return Ports{dataCopy, ports.value}
 }
