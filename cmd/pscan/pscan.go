@@ -10,12 +10,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TimofeiBoldenkov/pscan/internal/tools"
 	"github.com/TimofeiBoldenkov/pscan/internal/scan"
+	"github.com/TimofeiBoldenkov/pscan/internal/tools"
 )
 
 func main() {
-	protocols := [6]string{"tcp", "tcp4", "tcp6", "udp", "udp4", "udp6"}
+	protocols := []string{"tcp", "tcp4", "tcp6"}
 
 	portFlag := flag.String("port", "0-1023", "The target port")
 	flag.StringVar(portFlag, "p", "0-1023", "The target port")
@@ -28,7 +28,7 @@ func main() {
 	flag.Parse()
 
 	*protocolFlag = strings.ToLower(*protocolFlag)
-	if !slices.Contains([]string{"tcp", "tcp4", "tcp6", "udp", "udp4", "udp6"}, *protocolFlag) {
+	if !slices.Contains(protocols, *protocolFlag) {
 		fmt.Fprintf(os.Stderr, "Invalid protocol - %v\n", *protocolFlag)
 		os.Exit(1)
 	}
@@ -41,14 +41,16 @@ func main() {
 
 	hosts := flag.Args()
 
-	ch := make(chan struct{}, tools.Min(*maxRequestsFlag * len(hosts), *maxRoutinesFlag))
+	ch := make(chan struct{}, tools.Min(*maxRequestsFlag*len(hosts), *maxRoutinesFlag))
 
 	type portInfo struct {
-		port int
+		port  int
 		state scan.PortState
 	}
-	result := make(map[string][]portInfo, len(hosts) * 3 / 2)
+	result := make(map[string][]portInfo, len(hosts)*3/2)
 
+	fmt.Println("Scanning...")
+	fmt.Println()
 
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
@@ -60,7 +62,7 @@ func main() {
 			go func(host string, port int, protocol string, timeout time.Duration) {
 				defer func() {
 					<-ch
-					wg.Done() 
+					wg.Done()
 				}()
 				portState, err := scan.ScanHostPort(host, strconv.FormatInt(int64(port), 10), protocol, timeout)
 				if err != nil {
@@ -70,7 +72,7 @@ func main() {
 					result[host] = append(result[host], portInfo{port, portState})
 					mutex.Unlock()
 				}
-			}(host, port, *protocolFlag, time.Duration(*timeoutFlag * float64(time.Second)))
+			}(host, port, *protocolFlag, time.Duration(*timeoutFlag*float64(time.Second)))
 		}
 	}
 

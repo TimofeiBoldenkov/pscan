@@ -13,5 +13,5 @@ Default value - 20.
 Default value - 10.
 * `max-routines` - the maximum amount of goroutines.
 Default value - 10000.
-* `protocol` - the protocol used for connection. Available protocols are tcp, tcp4 (i.e. tcp only with ipv4), tcpv6 (i.e. tcp only with ipv6), udp, udp4, udp6.
+* `protocol` - the protocol used for connection. Available protocols are tcp, tcp4 (i.e. tcp only with ipv4), tcpv6 (i.e. tcp only with ipv6).
 Default value - tcp.
